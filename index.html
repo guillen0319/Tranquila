@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Respira — un momento para ti</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌧️</text></svg>" />
+<style>
+  :root{
+    color-scheme: dark;
+    --bg-0:#131A22;
+    --bg-1:#1D2732;
+    --surface: rgba(255,255,255,0.05);
+    --surface-strong: rgba(255,255,255,0.09);
+    --text-0:#EAF1F3;
+    --text-1:#94A5AE;
+    --accent-rain:#6FAF95;
+    --accent-piano:#CDA36B;
+    --accent: var(--accent-rain);
+    --accent-glow: rgba(111,175,149,0.20);
+    --accent-shadow: rgba(111,175,149,0.70);
+    --serif: Iowan Old Style, Palatino Linotype, Palatino, Georgia, "Noto Serif", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      color-scheme: light;
+      --bg-0:#DDE4E6;
+      --bg-1:#C9D3D6;
+      --surface: rgba(15,25,30,0.05);
+      --surface-strong: rgba(15,25,30,0.09);
+      --text-0:#1E2A2F;
+      --text-1:#546167;
+      --accent-rain:#3D7A64;
+      --accent-piano:#93692F;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg-0:#131A22;
+    --bg-1:#1D2732;
+    --surface: rgba(255,255,255,0.05);
+    --surface-strong: rgba(255,255,255,0.09);
+    --text-0:#EAF1F3;
+    --text-1:#94A5AE;
+    --accent-rain:#6FAF95;
+    --accent-piano:#CDA36B;
+    --accent-glow: rgba(111,175,149,0.20);
+    --accent-shadow: rgba(111,175,149,0.70);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{
+    height:100%;
+    margin:0;
+    background:var(--bg-0);
+  }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
+
+  body{
+    font-family: var(--sans);
+    color: var(--text-0);
+    background:
+      radial-gradient(120% 90% at 50% 0%, var(--bg-1), var(--bg-0) 65%);
+    min-height: 100dvh;
+    display:flex;
+    flex-direction:column;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow:hidden;
+    transition: background 1s ease;
+  }
+
+  .scene{
+    position:relative;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 24px;
+    min-height: 100%;
+  }
+
+  .glow{
+    position:absolute;
+    width:min(70vw, 520px);
+    height:min(70vw, 520px);
+    border-radius:50%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    filter: blur(10px);
+    animation: breathe 7s ease-in-out infinite;
+    transition: background 1.2s ease;
+    pointer-events:none;
+  }
+  @keyframes breathe{
+    0%,100%{ transform: scale(0.94); opacity:.65; }
+    50%{ transform: scale(1.08); opacity:1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .glow{ animation:none; }
+  }
+
+  .top-controls{
+    position:absolute;
+    top: calc(18px + env(safe-area-inset-top, 0px));
+    left:0; right:0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 0 18px;
+    z-index:3;
+  }
+
+  .pill-btn{
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    letter-spacing: .01em;
+    color: var(--text-0);
+    background: var(--surface);
+    border: 1px solid var(--surface-strong);
+    border-radius: 999px;
+    padding: 9px 16px;
+    cursor:pointer;
+    backdrop-filter: blur(6px);
+    transition: background .25s ease, transform .15s ease, border-color .25s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pill-btn:hover{ background: var(--surface-strong); }
+  .pill-btn:active{ transform: scale(0.96); }
+  .pill-btn:focus-visible, .cta:focus-visible, .icon-btn:focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .icon-btn{
+    width:38px; height:38px;
+    border-radius:50%;
+    border: 1px solid var(--surface-strong);
+    background: var(--surface);
+    color: var(--text-0);
+    font-size:1rem;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    backdrop-filter: blur(6px);
+  }
+  .icon-btn:active{ transform: scale(0.94); }
+
+  main.content{
+    position:relative;
+    z-index:2;
+    max-width: 560px;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap: 34px;
+  }
+
+  .phrase{
+    margin:0;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 4.6vw, 2.35rem);
+    line-height: 1.42;
+    color: var(--text-0);
+    max-width: 22ch;
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .phrase.is-changing{
+    opacity:0;
+    transform: translateY(6px);
+  }
+
+  .cta{
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    color: var(--bg-0);
+    background: var(--accent);
+    border: none;
+    border-radius: 999px;
+    padding: 14px 30px;
+    cursor:pointer;
+    box-shadow: 0 10px 30px -12px var(--accent-shadow);
+    transition: background .5s ease, transform .15s ease, box-shadow .5s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cta:hover{ transform: translateY(-1px); }
+  .cta:active{ transform: scale(0.97); }
+
+  .hint{
+    position:absolute;
+    bottom: calc(46px + env(safe-area-inset-bottom, 0px));
+    left:0; right:0;
+    text-align:center;
+    color: var(--text-1);
+    font-size: 0.78rem;
+    letter-spacing:.01em;
+    z-index:2;
+    padding: 0 20px;
+  }
+
+  .downloads{
+    position:absolute;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left:0; right:0;
+    display:flex;
+    justify-content:center;
+    gap: 20px;
+    z-index:2;
+  }
+  .link-btn{
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    color: var(--text-1);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: transparent;
+    cursor: pointer;
+    padding: 4px 2px;
+    transition: color .2s ease, text-decoration-color .2s ease;
+  }
+  .link-btn:hover{
+    color: var(--text-0);
+    text-decoration-color: currentColor;
+  }
+  .link-btn:disabled{
+    opacity: .6;
+    cursor: default;
+  }
+
+  .start-veil{
+    position:fixed;
+    inset:0;
+    background: var(--bg-0);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:10;
+    cursor:pointer;
+    transition: opacity .6s ease;
+  }
+  .start-veil p{
+    font-family: var(--serif);
+    color: var(--text-0);
+    font-size: 1.05rem;
+    letter-spacing:.02em;
+    opacity:.9;
+  }
+  .start-veil.hidden{
+    opacity:0;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+  <div class="start-veil" id="startVeil" role="button" tabindex="0" aria-label="Toca para comenzar">
+    <p>Toca en cualquier lugar para comenzar 🌧️</p>
+  </div>
+
+  <div class="scene">
+    <div class="glow" aria-hidden="true"></div>
+
+    <div class="top-controls">
+      <button class="pill-btn" id="soundToggle" type="button">🌧️ Lluvia</button>
+      <button class="icon-btn" id="muteToggle" type="button" aria-label="Silenciar sonido">🔊</button>
+    </div>
+
+    <main class="content">
+      <p class="phrase" id="phrase" aria-live="polite"></p>
+      <button class="cta" id="newPhrase" type="button">Otra frase</button>
+    </main>
+
+    <p class="hint">Baja el volumen si quieres, cierra los ojos y respira despacio.</p>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Frases ----------
+  var phrases = [
+    "No tienes que resolverlo todo hoy. Con este minuto es suficiente.",
+    "Respira. Ya has llegado hasta aquí, y eso ya es mucho.",
+    "Está bien parar. Descansar también es avanzar.",
+    "Tu cuerpo sabe cómo calmarse, solo dale un momento.",
+    "Lo que sientes es válido. Y también es pasajero.",
+    "No estás atrasada en la vida, estás en tu propio momento.",
+    "Suelta los hombros. Suelta la mandíbula. Suelta un poco más.",
+    "Hiciste lo que pudiste con lo que tenías. Eso cuenta.",
+    "Una cosa a la vez. Solo una.",
+    "Puedes empezar de nuevo tantas veces como lo necesites.",
+    "Este momento difícil no define lo que puedes lograr después.",
+    "Te está permitido no tener todas las respuestas hoy.",
+    "Cada respiración lenta es una pequeña victoria.",
+    "No pasa nada por sentirte cansada. Descansa sin culpa.",
+    "Eres más fuerte que muchos de tus días difíciles.",
+    "El silencio también es un lugar donde puedes sanar.",
+    "No compares tu ritmo con el de nadie más.",
+    "Mereces la misma paciencia que le darías a alguien que quieres.",
+    "Lo que hoy pesa, mañana pesará un poco menos.",
+    "Estás permitiendo que tu mente descanse. Eso ya es cuidarte.",
+    "No necesitas estar bien todo el tiempo para merecer calma.",
+    "Poco a poco también se llega.",
+    "Date permiso de no hacer nada por unos minutos.",
+    "Vas a estar bien, aunque ahora no lo sientas así."
+  ];
+
+  var phraseEl = document.getElementById("phrase");
+  var lastIndex = -1;
+
+  function pickPhrase(){
+    var i;
+    do { i = Math.floor(Math.random() * phrases.length); }
+    while (phrases.length > 1 && i === lastIndex);
+    lastIndex = i;
+    return phrases[i];
+  }
+
+  function showNewPhrase(){
+    phraseEl.classList.add("is-changing");
+    setTimeout(function(){
+      phraseEl.textContent = pickPhrase();
+      phraseEl.classList.remove("is-changing");
+    }, 220);
+  }
+
+  phraseEl.textContent = pickPhrase();
+
+  document.getElementById("newPhrase").addEventListener("click", showNewPhrase);
+
+  var ctx = null;
+  var master = null;
+  var rain = null;
+  var piano = null;
+  var mode = "rain"; // "rain" | "piano"
+  var muted = false;
+  var started = false;
+
+  function makeReverbBuffer(context){
+    var length = context.sampleRate * 1.6;
+    var buf = context.createBuffer(2, length, context.sampleRate);
+    for (var ch = 0; ch < 2; ch++){
+      var data = buf.getChannelData(ch);
+      for (var i = 0; i < length; i++){
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.2);
+      }
+    }
+    return buf;
+  }
+
+  function makeBrownBuffer(context, seconds){
+    var bufferSize = Math.floor(context.sampleRate * seconds);
+    var buffer = context.createBuffer(1, bufferSize, context.sampleRate);
+    var data = buffer.getChannelData(0);
+    var last = 0;
+    for (var i = 0; i < bufferSize; i++){
+      var white = Math.random() * 2 - 1;
+      last = (last + 0.018 * white) / 1.018;
+      data[i] = last * 3.6;
+    }
+    return buffer;
+  }
+
+  function makeWhiteBuffer(context, seconds){
+    var bufferSize = Math.floor(context.sampleRate * seconds);
+    var buffer = context.createBuffer(1, bufferSize, context.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    return buffer;
+  }
+
+  function buildRain(context, destination){
+    var brownBuffer = makeBrownBuffer(context, 6);
+    var whiteBuffer = makeWhiteBuffer(context, 3);
+
+    // cuerpo cálido y grave de la lluvia (sonido continuo tipo "shhh" suave)
+    var body = context.createBufferSource();
+    body.buffer = brownBuffer;
+    body.loop = true;
+
+    var bodyLowpass = context.createBiquadFilter();
+    bodyLowpass.type = "lowpass";
+    bodyLowpass.frequency.value = 1100;
+    var bodyHighpass = context.createBiquadFilter();
+    bodyHighpass.type = "highpass";
+    bodyHighpass.frequency.value = 90;
+
+    var lfo = context.createOscillator();
+    lfo.frequency.value = 0.045;
+    var lfoGain = context.createGain();
+    lfoGain.gain.value = 180;
+    lfo.connect(lfoGain).connect(bodyLowpass.frequency);
+
+    var bodyGain = context.createGain();
+    bodyGain.gain.value = 0.5;
+
+    // fondo grave envolvente, casi imperceptible, da sensación de "manta"
+    var underlay = context.createBufferSource();
+    underlay.buffer = brownBuffer;
+    underlay.loop = true;
+    var underlayLowpass = context.createBiquadFilter();
+    underlayLowpass.type = "lowpass";
+    underlayLowpass.frequency.value = 220;
+    var underlayGain = context.createGain();
+    underlayGain.gain.value = 0.22;
+
+    // capa muy sutil de "goteo" fino, apagada y lenta (nada de silbido agudo)
+    var drops = context.createBufferSource();
+    drops.buffer = whiteBuffer;
+    drops.loop = true;
+    var dropsBandpass = context.createBiquadFilter();
+    dropsBandpass.type = "bandpass";
+    dropsBandpass.frequency.value = 2600;
+    dropsBandpass.Q.value = 0.7;
+    var dropsLowpass = context.createBiquadFilter();
+    dropsLowpass.type = "lowpass";
+    dropsLowpass.frequency.value = 3200;
+    var dropsGain = context.createGain();
+    dropsGain.gain.value = 0.05;
+    var lfo2 = context.createOscillator();
+    lfo2.frequency.value = 0.11;
+    var lfo2Gain = context.createGain();
+    lfo2Gain.gain.value = 0.03;
+    lfo2.connect(lfo2Gain).connect(dropsGain.gain);
+
+    var gain = context.createGain();
+    gain.gain.value = 0.6;
+
+    body.connect(bodyHighpass).connect(bodyLowpass).connect(bodyGain).connect(gain);
+    underlay.connect(underlayLowpass).connect(underlayGain).connect(gain);
+    drops.connect(dropsBandpass).connect(dropsLowpass).connect(dropsGain).connect(gain);
+    gain.connect(destination);
+
+    body.start();
+    underlay.start();
+    drops.start();
+    lfo.start();
+    lfo2.start();
+
+    return { gain: gain };
+  }
+
+  // escala de La menor (más melancólica y espaciosa), notas siempre consonantes entre sí
+  var PIANO_SCALE = [220.0, 261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 659.25];
+  var PAD_CHORDS = [
+    [220.0, 261.63, 329.63],   // Am
+    [174.61, 220.0, 261.63],   // F
+    [196.0, 246.94, 329.63],   // G (con novena suave)
+    [220.0, 261.63, 392.0]     // Am7-ish
+  ];
+
+  function pluckNote(context, freq, time, dest){
+    var o1 = context.createOscillator();
+    o1.type = "sine";
+    o1.frequency.value = freq;
+    var o2 = context.createOscillator();
+    o2.type = "sine";
+    o2.frequency.value = freq * 2;
+    var g2 = context.createGain();
+    g2.gain.value = 0.09;
+
+    var env = context.createGain();
+    env.gain.setValueAtTime(0.0001, time);
+    env.gain.linearRampToValueAtTime(0.24, time + 0.06);
+    env.gain.exponentialRampToValueAtTime(0.0001, time + 5.5);
+
+    o1.connect(env);
+    o2.connect(g2).connect(env);
+    env.connect(dest);
+
+    o1.start(time); o2.start(time);
+    o1.stop(time + 5.6); o2.stop(time + 5.6);
+  }
+
+  // capa suave tipo cuerdas: acordes largos y sostenidos con ataque lento
+  function stringSwell(context, freqs, time, duration, dest){
+    freqs.forEach(function(freq){
+      var osc = context.createOscillator();
+      osc.type = "sawtooth";
+      osc.frequency.value = freq;
+      var stringFilter = context.createBiquadFilter();
+      stringFilter.type = "lowpass";
+      stringFilter.frequency.value = 900;
+      var env = context.createGain();
+      env.gain.setValueAtTime(0.0001, time);
+      env.gain.linearRampToValueAtTime(0.05, time + duration * 0.4);
+      env.gain.linearRampToValueAtTime(0.0001, time + duration);
+      osc.connect(stringFilter).connect(env).connect(dest);
+      osc.start(time);
+      osc.stop(time + duration + 0.2);
+    });
+  }
+
+  // construye la cadena de reverb/calidez del piano; no la conecta a ningún destino final
+  function createPianoAudioGraph(context){
+    var reverb = context.createConvolver();
+    reverb.buffer = makeReverbBuffer(context);
+    var wet = context.createGain();
+    wet.gain.value = 0.68;
+    var warmth = context.createBiquadFilter();
+    warmth.type = "lowpass";
+    warmth.frequency.value = 2600;
+    var out = context.createGain();
+    out.gain.value = 0;
+
+    // vaivén lento y genérico de intensidad: más presente por momentos, luego vuelve a lo íntimo
+    var dynamicsLfo = context.createOscillator();
+    dynamicsLfo.type = "sine";
+    dynamicsLfo.frequency.value = 1 / 50; // un ciclo completo cada ~50s
+    var dynamicsDepth = context.createGain();
+    dynamicsDepth.gain.value = 0.12;
+    var dynamicsBase = context.createConstantSource();
+    dynamicsBase.offset.value = 0.7;
+    dynamicsLfo.connect(dynamicsDepth);
+    dynamicsDepth.connect(out.gain);
+    dynamicsBase.connect(out.gain);
+    dynamicsLfo.start();
+    dynamicsBase.start();
+
+    reverb.connect(wet).connect(warmth);
+    var dry = context.createGain();
+    dry.gain.value = 0.38;
+    dry.connect(warmth);
+    warmth.connect(out);
+
+    return { dry: dry, reverb: reverb, out: out };
+  }
+
+  function buildPiano(context, destination){
+    var graph = createPianoAudioGraph(context);
+    var modeGain = context.createGain();
+    modeGain.gain.value = 0;
+    graph.out.connect(modeGain);
+    modeGain.connect(destination);
+
+    var timer = null;
+    var padTimer = null;
+    var active = false;
+
+    function scheduleLoop(){
+      if (!active) return;
+      var now = context.currentTime;
+      var note = PIANO_SCALE[Math.floor(Math.random() * PIANO_SCALE.length)];
+      pluckNote(context, note, now + 0.05, graph.dry);
+      pluckNote(context, note, now + 0.05, graph.reverb);
+      if (Math.random() < 0.3){
+        var harmony = PIANO_SCALE[Math.floor(Math.random() * PIANO_SCALE.length)];
+        pluckNote(context, harmony, now + 2.2, graph.dry);
+        pluckNote(context, harmony, now + 2.2, graph.reverb);
+      }
+      var nextIn = 4200 + Math.random() * 4200;
+      timer = setTimeout(scheduleLoop, nextIn);
+    }
+
+    function schedulePad(){
+      if (!active) return;
+      var now = context.currentTime;
+      var chord = PAD_CHORDS[Math.floor(Math.random() * PAD_CHORDS.length)];
+      var duration = 9 + Math.random() * 4;
+      stringSwell(context, chord, now + 0.1, duration, graph.reverb);
+      stringSwell(context, chord, now + 0.1, duration, graph.dry);
+      padTimer = setTimeout(schedulePad, duration * 1000 * 0.85);
+    }
+
+    return {
+      gain: modeGain,
+      start: function(){
+        if (active) return;
+        active = true;
+        scheduleLoop();
+        schedulePad();
+      },
+      stop: function(){
+        active = false;
+        if (timer) clearTimeout(timer);
+        if (padTimer) clearTimeout(padTimer);
+      }
+    };
+  }
+
+  // ---------- Renderizado fuera de tiempo real, para poder descargar el audio ----------
+
+  function renderRainWav(durationSeconds){
+    var sampleRate = 44100;
+    var offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(durationSeconds * sampleRate), sampleRate);
+    buildRain(offlineCtx, offlineCtx.destination);
+    return offlineCtx.startRendering().then(audioBufferToWavBlob);
+  }
+
+  function renderPianoWav(durationSeconds){
+    var sampleRate = 44100;
+    var offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.ceil(durationSeconds * sampleRate), sampleRate);
+    var graph = createPianoAudioGraph(offlineCtx);
+    graph.out.connect(offlineCtx.destination);
+
+    var t = 0.3;
+    while (t < durationSeconds - 6){
+      var note = PIANO_SCALE[Math.floor(Math.random() * PIANO_SCALE.length)];
+      pluckNote(offlineCtx, note, t, graph.dry);
+      pluckNote(offlineCtx, note, t, graph.reverb);
+      if (Math.random() < 0.3){
+        var harmony = PIANO_SCALE[Math.floor(Math.random() * PIANO_SCALE.length)];
+        pluckNote(offlineCtx, harmony, t + 2.2, graph.dry);
+        pluckNote(offlineCtx, harmony, t + 2.2, graph.reverb);
+      }
+      t += 4.2 + Math.random() * 4.2;
+    }
+
+    var t2 = 0.3;
+    while (t2 < durationSeconds - 10){
+      var chord = PAD_CHORDS[Math.floor(Math.random() * PAD_CHORDS.length)];
+      var dur = 9 + Math.random() * 4;
+      stringSwell(offlineCtx, chord, t2, dur, graph.reverb);
+      stringSwell(offlineCtx, chord, t2, dur, graph.dry);
+      t2 += dur * 0.85;
+    }
+
+    return offlineCtx.startRendering().then(audioBufferToWavBlob);
+  }
+
+  function audioBufferToWavBlob(buffer){
+    var numChannels = buffer.numberOfChannels;
+    var sampleRate = buffer.sampleRate;
+    var numFrames = buffer.length;
+    var bytesPerSample = 2;
+    var blockAlign = numChannels * bytesPerSample;
+    var dataSize = numFrames * blockAlign;
+    var arrayBuffer = new ArrayBuffer(44 + dataSize);
+    var view = new DataView(arrayBuffer);
+
+    function writeString(offset, str){
+      for (var i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+
+    writeString(0, "RIFF");
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 16, true);
+    writeString(36, "data");
+    view.setUint32(40, dataSize, true);
+
+    var channels = [];
+    for (var ch = 0; ch < numChannels; ch++) channels.push(buffer.getChannelData(ch));
+
+    var offset = 44;
+    for (var i = 0; i < numFrames; i++){
+      for (var c = 0; c < numChannels; c++){
+        var sample = Math.max(-1, Math.min(1, channels[c][i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+        offset += 2;
+      }
+    }
+
+    return new Blob([arrayBuffer], { type: "audio/wav" });
+  }
+
+  function triggerDownload(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+
+  function wireDownloadButton(buttonId, renderFn, filename, idleLabel){
+    var btn = document.getElementById(buttonId);
+    if (!btn) return;
+    btn.addEventListener("click", function(){
+      btn.disabled = true;
+      btn.textContent = "Preparando…";
+      renderFn(240)
+        .then(function(blob){
+          triggerDownload(blob, filename);
+          btn.textContent = idleLabel;
+          btn.disabled = false;
+        })
+        .catch(function(err){
+          console.error(err);
+          btn.textContent = "No se pudo generar";
+          setTimeout(function(){
+            btn.textContent = idleLabel;
+            btn.disabled = false;
+          }, 2500);
+        });
+    });
+  }
+
+  wireDownloadButton("downloadRain", renderRainWav, "lluvia-relajante.wav", "Descargar lluvia");
+  wireDownloadButton("downloadPiano", renderPianoWav, "piano-relajante.wav", "Descargar piano");
+
+  function probeLocalAudio(){
+    var urls = [
+      "audio/piano.mp3",
+      "audio/piano.mp3.mp3",
+      "audio/piano.wav",
+      "audio/piano.ogg",
+      "audio/piano.m4a"
+    ];
+    return new Promise(function(resolve){
+      var i = 0;
+      function tryNext(){
+        if (i >= urls.length){ resolve(null); return; }
+        var url = urls[i++];
+        var probe = new Audio();
+        var settled = false;
+        var timer = setTimeout(function(){
+          if (settled) return;
+          settled = true;
+          tryNext();
+        }, 1800);
+        probe.addEventListener("loadedmetadata", function(){
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          resolve(url);
+        });
+        probe.addEventListener("error", function(){
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          tryNext();
+        });
+        probe.src = url;
+        probe.load();
+      }
+      tryNext();
+    });
+  }
+
+  function buildPianoFromFile(url){
+    var el = new Audio(url);
+    el.loop = true;
+    el.preload = "auto";
+    el.playsInline = true;
+    return {
+      isFile: true,
+      audio: el,
+      start: function(){
+        try { el.currentTime = 0; } catch(e) {}
+        el.volume = muted ? 0 : 0.7;
+        var p = el.play();
+        if (p && p.catch) p.catch(function(err){ console.error("Piano:", err); });
+      },
+      stop: function(){ el.pause(); },
+      setVolume: function(v){ el.volume = muted ? 0 : Math.max(0, Math.min(1, v)); }
+    };
+  }
+
+  var localPianoProbe = probeLocalAudio();
+
+  function ensureAudio(){
+    if (started) return;
+    started = true;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain();
+    master.gain.value = 0.9;
+    master.connect(ctx.destination);
+
+    rain = buildRain(ctx, master);
+    piano = buildPiano(ctx, master);
+
+    rain.gain.gain.setValueAtTime(0.6, ctx.currentTime);
+    piano.gain.gain.setValueAtTime(0, ctx.currentTime);
+
+    localPianoProbe.then(function(url){
+      if (!url) {
+        console.warn("No se encontró el MP3 del piano en la carpeta audio.");
+        return;
+      }
+      var wasPianoActive = (mode === "piano");
+      var oldPiano = piano;
+      var filePiano = buildPianoFromFile(url);
+      piano = filePiano;
+      if (wasPianoActive){
+        filePiano.start();
+        oldPiano.stop();
+      }
+    });
+  }
+
+  function crossfadeTo(newMode){
+    if (!ctx) return;
+    var t = ctx.currentTime;
+    var ramp = 1.4;
+    if (newMode === "rain"){
+      piano.stop();
+      rain.gain.gain.cancelScheduledValues(t);
+      rain.gain.gain.linearRampToValueAtTime(0.6, t + ramp);
+      if (piano.isFile) {
+        piano.setVolume(0);
+      } else {
+        piano.gain.gain.cancelScheduledValues(t);
+        piano.gain.gain.linearRampToValueAtTime(0.0, t + ramp);
+      }
+    } else {
+      piano.start();
+      if (!piano.isFile) {
+        piano.gain.gain.cancelScheduledValues(t);
+        piano.gain.gain.linearRampToValueAtTime(0.7, t + ramp);
+      }
+      rain.gain.gain.cancelScheduledValues(t);
+      rain.gain.gain.linearRampToValueAtTime(0.0, t + ramp);
+    }
+  }
+
+  function setMode(newMode){
+    mode = newMode;
+    document.body.classList.toggle("mode-piano", mode === "piano");
+    var root = document.documentElement.style;
+    if (mode === "piano"){
+      root.setProperty("--accent", "var(--accent-piano)");
+      root.setProperty("--accent-glow", "rgba(205,163,107,0.20)");
+      root.setProperty("--accent-shadow", "rgba(205,163,107,0.70)");
+    } else {
+      root.setProperty("--accent", "var(--accent-rain)");
+      root.setProperty("--accent-glow", "rgba(111,175,149,0.20)");
+      root.setProperty("--accent-shadow", "rgba(111,175,149,0.70)");
+    }
+    document.getElementById("soundToggle").textContent =
+      mode === "piano" ? "🎹 Piano" : "🌧️ Lluvia";
+    if (ctx) crossfadeTo(mode);
+  }
+
+  document.getElementById("soundToggle").addEventListener("click", function(){
+    ensureAudio();
+    if (ctx.state === "suspended") ctx.resume();
+    setMode(mode === "rain" ? "piano" : "rain");
+  });
+
+  document.getElementById("muteToggle").addEventListener("click", function(e){
+    ensureAudio();
+    if (ctx.state === "suspended") ctx.resume();
+    muted = !muted;
+    var t = ctx.currentTime;
+    master.gain.cancelScheduledValues(t);
+    master.gain.linearRampToValueAtTime(muted ? 0 : 0.9, t + 0.4);
+    if (piano && piano.isFile) piano.setVolume(muted ? 0 : (mode === "piano" ? 0.7 : 0));
+    e.currentTarget.textContent = muted ? "🔇" : "🔊";
+  });
+
+  var veil = document.getElementById("startVeil");
+  function startFromVeil(){
+    ensureAudio();
+    if (ctx.state === "suspended") ctx.resume();
+    veil.classList.add("hidden");
+    setTimeout(function(){ veil.style.display = "none"; }, 650);
+  }
+  veil.addEventListener("click", startFromVeil);
+  veil.addEventListener("keydown", function(e){
+    if (e.key === "Enter" || e.key === " ") startFromVeil();
+  });
+
+})();
+</script>
+</body>
+</html>
